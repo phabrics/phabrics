@@ -19,7 +19,7 @@ driver_t *find_driver(int type, int id) {
   return driver;
 }
 
-int add_driver(driver_t *driver) {
+void add_driver(driver_t *driver) {
   driver->next= drivers;
   drivers= driver;
 }

@@ -15,10 +15,9 @@ typedef struct chunk_ref {
 } chunk_ref_t;
 
 typedef struct chunk {
-  byte_t this_align;   // Alignment exponent of chunk in bytes (amount to shift 1 by to get size)
-  byte_t page_align;   // Alignment exponent of page in bytes (amount to shift 1 by to get size)
+  byte_t this_align;   // Alignment exponent of chunk in units of next largest chunk size (amount to shift 1 by to get size)
+  byte_t next_align;   // Alignment exponent of next chunk in units of this chunk size (amount to shift 1 by to get size)
   hword_t offset;      // Offset of nearest chunk with available instance measured in chunk-size units
-  word_t alloc_mask;
   chunk_ref_t next;    // The next chunk in a doubly linked list of chunks
   chunk_ref_t prev;    // The previous chunk in a doubly linked list of chunks
 } chunk_t;

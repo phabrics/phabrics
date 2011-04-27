@@ -1,17 +1,20 @@
 #include "instance.h"
 
-// Manage a fixed, variable-sized pool of instances from which to allocate instances from and free to
-static instance_t *pool;
+// The pool is a table of pointers to memory locations that hold collections of one or more instances
+// These variables should be statically allocated in and linked in from platform-specific objects
+extern instance_t *pool[];
+extern int pool_size;
+
 
 // Add a vector of instances to be used in allocating individual instances or instance collections
 int add_inst_pool(instance_t *instances, int num_instances) {
   // Instances should point to a set of contiguous, aligned, num_instances instances
 
   instances->vector.size= num_instances;
-  instances->links[0]= pool->links[1];
-  instances->links[1]= instances + 1;
+  instances->links[DIR_PREV]= pool->links[DIR_NEXT];
+  instances->links[DIR_NEXT]= instances + 1;
   
-  pool->links[1]= instances;
+  pool->links[DIR_NEXT]= instances;
 
   // Returns a unique id for this set of instances to be used to possibly specify a specific set to use within the pool
   return id;

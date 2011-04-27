@@ -2,25 +2,25 @@
 
 #define __INSTANCE_H__
 
-// Instances must be constrained to exactly 16 bytes on all 32-bit platforms (check this)
+// Instances must be constrained to exactly 16 bytes on all platforms (check this)
 #define INSTANCE_SIZE 16
 
+// Instances must always be aligned on 16-byte boundaries
 #define INSTANCE_ALIGN 4
 
-#include "page.h"
+#include "resource.h"
 #include "chunk.h"
 #include "driver.h"
 #include "handle.h"
 
 typedef union instance {
-  page_t page;
-  chunk_t chunk;
-  driver_t driver;
-  handle_t handle;
-  layer_t layer;
-  site_t site;
-  kick_t kick;
-  punch_t punch;
+  entry_t entry;            // An entry point into an executable instance
+  site_t site;              // A site is a location in the virtual address space of bits
+  resource_t resource;      // A resource is a type of physical entity that contains a subset of sites
+  chunk_t chunk;            // A chunk is a container for instances
+  entry_t entry;            // An entry is a vector to a piece of executable code known as a handler
+  handle_t handle;          // A handle is an argument passed into a handler
+  driver_t driver;          // A driver is a handler that communicates with a system component
 } instance_t;
 
 #ifdef CHECK_INSTANCE_SIZE
