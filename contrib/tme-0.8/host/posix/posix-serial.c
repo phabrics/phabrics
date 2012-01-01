@@ -32,6 +32,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#define _BSD_SOURCE
 #define _XOPEN_SOURCE
 #include <tme/common.h>
 _TME_RCSID("$Id: posix-serial.c,v 1.11 2007/08/24 00:57:01 fredette Exp $");
@@ -595,8 +596,12 @@ _tme_posix_serial_config(struct tme_serial_connection *conn_serial, struct tme_s
       /* XXX diagnostic */
       termios_baud = B38400;
     }
+#ifdef _BSD_SOURCE
     rc = cfsetspeed(&serial_termios, termios_baud);
-
+#else
+    rc = cfsetspeed(&serial_termios, termios_baud);
+    rc = cfsetspeed(&serial_termios, termios_baud);
+#endif
     /* input mode or output mode: */
     if (is_input) {
       serial_termios.c_iflag = PARMRK;
