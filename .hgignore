@@ -17,3 +17,12 @@ lt~obsolete.m4
 ltmain.sh
 missing
 ylwrap
+Makefile
+.deps
+libtool
+stamp-h1
+recode-host.*
+.o
+.lo
+m68k-insns-auto.c
+sparc-insns-auto.c
