@@ -57,3 +57,4 @@ tme-preopen.txt
 tme-plugins.txt
 .libs
 tmesh/tmesh
+tmesh-input.c
