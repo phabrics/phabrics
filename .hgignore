@@ -1,3 +1,4 @@
+syntax: glob
 INSTALL
 Makefile.in
 aclocal.m4
@@ -22,7 +23,13 @@ Makefile
 libtool
 stamp-h1
 recode-host.*
-.o
-.lo
+tmeconfig.h
+*.o
+*.lo
+*.a
+*.la
+*.lai
+*.so
+*.so.*
 m68k-insns-auto.c
 sparc-insns-auto.c
