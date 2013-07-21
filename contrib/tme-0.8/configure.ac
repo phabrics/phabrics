@@ -277,7 +277,7 @@ dnl Checks for X11.
 AC_PATH_XTRA
 
 dnl Checks for GTK.
-AM_PATH_GTK_2_0([], have_gtk=true, have_gtk=false)
+AM_PATH_GTK_3_0([], have_gtk=true, have_gtk=false)
 if $have_gtk; then
   AC_DEFINE(HAVE_GTK, [], [Define if you are compiling with GTK.])
   TME_HOSTS="${TME_HOSTS} gtk"

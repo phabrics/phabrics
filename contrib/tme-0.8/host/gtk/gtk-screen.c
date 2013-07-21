@@ -122,39 +122,23 @@ _tme_gtk_screen_th_update(struct tme_gtk_display *display)
   /* NOTREACHED */
 }
 
-/* this recovers the bits-per-pixel value for a GdkImage: */
+/* this recovers the bits-per-pixel value for a GdkPixbuf: */
 static unsigned int
-_tme_gtk_gdkimage_bipp(GdkImage *image)
+_tme_gtk_gdkpixbuf_bipp(GdkPixbuf *image)
 {
-  unsigned int bipp, total_bits;
-
-  /* if the bytes per pixel value is greater than one, or if the image
-     depth is 8 or greater, just convert the bytes per pixel value to
-     bits per pixel: */
-  if (image->bpp > 1
-      || image->depth >= 8) {
-    return (image->bpp * 8);
-  }
-
-  /* otherwise, we know that the depth of the image is less than
-     eight, and the number of bits per pixel is eight or less: */
-  total_bits = image->bpl;
-  total_bits *= 8;
-  for (bipp = 8;
-       bipp > image->depth && (bipp * image->width) > total_bits;
-       bipp >>= 1);
-  return (bipp);
+  return gdk_pixbuf_get_bits_per_sample(image) * gdk_pixbuf_get_n_channels(image);
 }
 
-/* this recovers the scanline-pad value for a GdkImage: */
+/* this recovers the scanline-pad value for a GdkPixbuf: */
 static unsigned int
-_tme_gtk_gdkimage_scanline_pad(GdkImage *image)
+_tme_gtk_gdkpixbuf_scanline_pad(GdkPixbuf *image)
 {
-
-  if ((image->bpl % sizeof(tme_uint32_t)) == 0) {
+  int bpl = gdk_pixbuf_get_rowstride(image);
+  
+  if ((bpl % sizeof(tme_uint32_t)) == 0) {
     return (32);
   }
-  if ((image->bpl % sizeof(tme_uint16_t)) == 0) {
+  if ((bpl % sizeof(tme_uint16_t)) == 0) {
     return (16);
   }
   return (8);
@@ -179,7 +163,7 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
   const tme_uint32_t *map_pixel_old;
   tme_uint32_t map_pixel_count_old;  
   tme_uint32_t colorset;
-  GdkImage *gdkimage;
+  GdkPixbuf *gdkpixbuf;
   GdkVisual *visual;
   tme_uint32_t color_count, color_i;
   tme_uint32_t color_count_distinct;
@@ -188,6 +172,8 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
   GdkColor *colors_gdk;
   gboolean *success;
   gboolean warned_color_alloc;
+  cairo_surface_t *surface;
+  int stride;
 
   /* recover our data structures: */
   display = conn_fb->tme_fb_connection.tme_connection_element->tme_element_private;
@@ -236,7 +222,7 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
   /* get the system's default visual: */
   visual = gdk_visual_get_system();
 
-  /* get the required dimensions for the GdkImage: */
+  /* get the required dimensions for the GdkPixbuf: */
   width = ((conn_fb_other->tme_fb_connection_width
 	    * scale)
 	   / TME_FB_XLAT_SCALE_NONE);
@@ -252,26 +238,26 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
        ? 2
        : 1);
 
-  /* if the previous gdkimage isn't the right size: */
-  gdkimage = screen->tme_gtk_screen_gdkimage;
-  if (gdkimage->width != width
-      || gdkimage->height != (height + height_extra)) {
+  /* if the previous gdkpixbuf isn't the right size: */
+  gdkpixbuf = screen->tme_gtk_screen_gdkpixbuf;
+  if (gdk_pixbuf_get_width(gdkpixbuf) != width
+      || gdk_pixbuf_get_height(gdkpixbuf) != (height + height_extra)) {
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height + height_extra);
+    /* allocate a new gdkpixbuf: */
+    gdkpixbuf = gdk_pixbuf_get_from_surface(surface,
+					    0, 0,
+					    width, height + height_extra);
 
-    /* allocate a new gdkimage: */
-    gdkimage = gdk_image_new(GDK_IMAGE_FASTEST,
-			     visual,
-			     width,
-			     height
-			     + height_extra);
+    cairo_surface_destroy (surface);
 
     /* set the new image on the image widget: */
     gtk_image_set(GTK_IMAGE(screen->tme_gtk_screen_gtkimage),
-		  gdkimage,
+		  gdkpixbuf,
 		  NULL);
 
-    /* destroy the previous gdkimage and remember the new one: */
-    gdk_image_destroy(screen->tme_gtk_screen_gdkimage);
-    screen->tme_gtk_screen_gdkimage = gdkimage;
+    /* destroy the previous gdkpixbuf and remember the new one: */
+    g_object_unref(screen->tme_gtk_screen_gdkpixbuf);
+    screen->tme_gtk_screen_gdkpixbuf = gdkpixbuf;
   }
 
   /* remember all previously allocated maps and colors, but otherwise
@@ -290,14 +276,12 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
   /* update our framebuffer connection: */
   conn_fb->tme_fb_connection_width = width;
   conn_fb->tme_fb_connection_height = height;
-  conn_fb->tme_fb_connection_depth = gdkimage->depth;
-  conn_fb->tme_fb_connection_bits_per_pixel = _tme_gtk_gdkimage_bipp(gdkimage);
-  conn_fb->tme_fb_connection_skipx = 0;
-  conn_fb->tme_fb_connection_scanline_pad = _tme_gtk_gdkimage_scanline_pad(gdkimage);
-  conn_fb->tme_fb_connection_order = (gdkimage->byte_order == GDK_LSB_FIRST
-				      ? TME_ENDIAN_LITTLE
-				      : TME_ENDIAN_BIG);
-  conn_fb->tme_fb_connection_buffer = gdkimage->mem;
+  conn_fb->tme_fb_connection_depth = _tme_gtk_gdkpixbuf_bipp(gdkpixbuf);
+  conn_fb->tme_fb_connection_bits_per_pixel = conn_fb->tme_fb_connection_depth;
+  conn_fb->tme_fb_connection_skipx = gdk_pixbuf_get_rowstride(gdkpixbuf) - width;
+  conn_fb->tme_fb_connection_scanline_pad = _tme_gtk_gdkpixbuf_scanline_pad(gdkpixbuf);
+  conn_fb->tme_fb_connection_order = TME_ENDIAN_NATIVE;
+  conn_fb->tme_fb_connection_buffer = gdk_pixbuf_get_pixels(gdkpixbuf);
   switch (visual->type) {
   case GDK_VISUAL_STATIC_GRAY: 
   case GDK_VISUAL_GRAYSCALE:
@@ -616,6 +600,7 @@ _tme_gtk_screen_new(struct tme_gtk_display *display)
   GtkWidget *menu_item;
   tme_uint8_t *bitmap_data;
   unsigned int y;
+  cairo_surface_t *surface;
 #define BLANK_SIDE (16 * 8)
 
   /* create the new screen and link it in: */
@@ -693,7 +678,7 @@ _tme_gtk_screen_new(struct tme_gtk_display *display)
   /* show the event box: */
   gtk_widget_show(screen->tme_gtk_screen_event_box);
 
-  /* create a GdkImage of an alternating-bits area.  we must use
+  /* create a GdkPixbuf of an alternating-bits area.  we must use
      malloc() here since this memory will end up as part of an XImage,
      and X will call free() on it: */
   bitmap_data = (tme_uint8_t *)
@@ -709,15 +694,24 @@ _tme_gtk_screen_new(struct tme_gtk_display *display)
 	    : 0xcc),
 	   (BLANK_SIDE / 8));
   }
-  screen->tme_gtk_screen_gdkimage
-    = gdk_image_new_bitmap(gdk_visual_get_system(),
-			   bitmap_data,
-			   BLANK_SIDE,
-			   BLANK_SIDE);
+
+  surface
+    = cairo_image_surface_create_for_data(bitmap_data, 
+					  CAIRO_FORMAT_A1, 
+					  BLANK_SIDE, 
+					  BLANK_SIDE, 
+					  0);
+
+  screen->tme_gtk_screen_gdkpixbuf
+    = gdk_pixbuf_get_from_surface(surface,
+				  0, 0,
+				  BLANK_SIDE, BLANK_SIDE);
+
+  cairo_surface_destroy(surface);
 
   /* create the GtkImage for the framebuffer area: */
-  screen->tme_gtk_screen_gtkimage
-    = gtk_image_new_from_image(screen->tme_gtk_screen_gdkimage, NULL);
+  screen->tme_gtk_screen_gtkimage 
+    = gtk_image_new_from_pixbuf(screen->tme_gtk_screen_gdkpixbuf);
 
   /* add the GtkImage to the event box: */
   gtk_container_add(GTK_CONTAINER(screen->tme_gtk_screen_event_box), 

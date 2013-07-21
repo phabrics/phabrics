@@ -93,9 +93,9 @@ struct tme_gtk_screen {
   GtkWidget *tme_gtk_screen_scale_default;
   GtkWidget *tme_gtk_screen_scale_half;
 
-  /* the GtkEventBox, GdkImage and GtkImage for the framebuffer: */
+  /* the GtkEventBox, GdkPixbuf and GtkImage for the framebuffer: */
   GtkWidget *tme_gtk_screen_event_box;
-  GdkImage *tme_gtk_screen_gdkimage;
+  GdkPixbuf *tme_gtk_screen_gdkpixbuf;
   GtkWidget *tme_gtk_screen_gtkimage;
 
   /* the translation function: */

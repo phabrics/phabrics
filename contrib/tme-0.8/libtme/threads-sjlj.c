@@ -51,6 +51,12 @@ _TME_RCSID("$Id: threads-sjlj.c,v 1.18 2010/06/05 19:10:28 fredette Exp $");
 #define G_ENABLE_DEBUG (0)
 #endif /* !G_ENABLE_DEBUG */
 #include <gtk/gtk.h>
+#if GTK_MAJOR_VERSION >= 3
+typedef int GdkInputCondition;
+#define GDK_INPUT_READ		TME_BIT(0)
+#define GDK_INPUT_WRITE		TME_BIT(1)
+#define GDK_INPUT_EXCEPTION	TME_BIT(2)
+#endif
 #else  /* !HAVE_GTK */
 typedef int gint;
 typedef int GdkInputCondition;
