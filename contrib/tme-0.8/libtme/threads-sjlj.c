@@ -56,7 +56,7 @@ typedef int gint;
 typedef int GdkInputCondition;
 typedef void *gpointer;
 #define G_IO_IN		TME_BIT(0)
-#define G_IO_OUT		TME_BIT(1)
+#define G_IO_OUT	TME_BIT(1)
 #define G_IO_ERR	TME_BIT(2)
 #endif /* !HAVE_GTK */
 

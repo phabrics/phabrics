@@ -5,7 +5,8 @@ AUTOMAKE_OPTIONS = 1.4 gnu
 
 SUBDIRS = host
 
-AM_CPPFLAGS = -I$(top_srcdir) -I$(srcdir) -I. $(LTDLINCL) $(GTK_CFLAGS) -D_TME_IMPL
+AM_CPPFLAGS = -I$(top_srcdir) -I$(srcdir) -I. $(LTDLINCL) -D_TME_IMPL
+AM_CFLAGS = $(GTK_CFLAGS)
 
 lib_LTLIBRARIES = libtme.la
 pkginclude_HEADERS = memory-auto.h

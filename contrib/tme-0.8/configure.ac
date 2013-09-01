@@ -283,6 +283,16 @@ if $have_gtk; then
   TME_HOSTS="${TME_HOSTS} gtk"
 fi
 
+dnl Checks for DirectFB.
+DIRECTFB_REQUIRED_VERSION=1.4.14
+
+PKG_CHECK_MODULES(DIRECTFB, directfb >= $DIRECTFB_REQUIRED_VERSION, have_dfb=true, have_dfb=false)
+
+if $have_dfb; then
+  AC_DEFINE(HAVE_DFB, [], [Define if you are compiling with DirectFB.])
+  TME_HOSTS="${TME_HOSTS} dfb"
+fi
+
 dnl Characterize any graphics displays and remember the areas of
 dnl the smallest and largest screens.
 TME_FB_XLAT_DST=
@@ -971,6 +981,7 @@ AC_CONFIG_FILES([Makefile
           host/posix/Makefile
           host/bsd/Makefile
           host/gtk/Makefile
+          host/dfb/Makefile
           bus/Makefile
           bus/multibus/Makefile
           bus/sbus/Makefile
