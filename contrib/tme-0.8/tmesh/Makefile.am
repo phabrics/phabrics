@@ -14,6 +14,9 @@ libtmesh_la_SOURCES = \
 libtmesh_la_LDFLAGS = -version-info 0:0:0
 libtmesh_la_LIBADD = $(top_builddir)/libtme/libtme.la
 
-bin_PROGRAMS = tmesh
-tmesh_LDADD = libtmesh.la $(GTK_LIBS) -lX11
+bin_PROGRAMS = tmesh $(DIRECTFB_TMESH)
 tmesh_LDFLAGS = -dlpreopen self @TME_PREOPEN@
+
+if HAVE_DFB
+	tmesh_LDADD = libtmesh.la $(GTK_LIBS) $(DIRECTFB_LIBS)
+endif
