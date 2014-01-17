@@ -1,6 +1,6 @@
-/* $Id: bsd-impl.h,v 1.1 2003/05/18 00:02:23 fredette Exp $ */
+/* $Id: eth-impl.h,v 1.1 2003/05/18 00:02:23 fredette Exp $ */
 
-/* host/bsd/bsd-impl.h - BSD host internal header */
+/* host/eth/eth-impl.h - ETH host internal header */
 
 /*
  * Copyright (c) 2003 Matt Fredette
@@ -33,11 +33,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _HOST_BSD_IMPL_H
-#define _HOST_BSD_IMPL_H
+#ifndef _HOST_ETH_IMPL_H
+#define _HOST_ETH_IMPL_H
 
 #include <tme/common.h>
-_TME_RCSID("$Id: bsd-impl.h,v 1.1 2003/05/18 00:02:23 fredette Exp $");
+_TME_RCSID("$Id: eth-impl.h,v 1.1 2003/05/18 00:02:23 fredette Exp $");
 
 /* includes: */
 #include <sys/param.h>
@@ -49,8 +49,8 @@ _TME_RCSID("$Id: bsd-impl.h,v 1.1 2003/05/18 00:02:23 fredette Exp $");
 /* macros: */
 
 /* prototypes: */
-int tme_bsd_if_find _TME_P((_tme_const char *, struct ifreq **, tme_uint8_t **, unsigned int *));
+int tme_eth_if_find _TME_P((_tme_const char *, struct ifreq **, tme_uint8_t **, unsigned int *));
 
-int tme_bsd_ifaddrs_find _TME_P((_tme_const char *, struct ifaddrs **, tme_uint8_t **, unsigned int *));
+int tme_eth_ifaddrs_find _TME_P((_tme_const char *, struct ifaddrs **, tme_uint8_t **, unsigned int *));
 
-#endif /* !_HOST_BSD_IMPL_H */
+#endif /* !_HOST_ETH_IMPL_H */
