@@ -37,6 +37,7 @@
 _TME_RCSID("$Id: fb.c,v 1.5 2007/08/25 21:05:30 fredette Exp $");
 
 /* includes: */
+#include <stdint.h>
 #include <tme/generic/fb.h>
 
 /* include the automatically-generated translation functions: */
