@@ -40,7 +40,7 @@ _TME_RCSID("$Id: gtk-mouse.c,v 1.3 2007/03/03 15:33:22 fredette Exp $");
 #include "gtk-display.h"
 #include <gdk/gdkkeysyms.h>
 
-/* this warps the pointer to the middle of the GtkImage: */
+/* this warps the pointer to the middle of the Gtkframe: */
 static void
 _tme_gtk_mouse_warp_pointer(struct tme_gtk_screen *screen)
 {
@@ -95,9 +95,9 @@ _tme_gtk_mouse_mouse_event(GtkWidget *widget,
   /* if this is motion: */
   if (gdk_event_raw->type == GDK_MOTION_NOTIFY) {
 
-    /* this event must have happened in the gtkimage: */
+    /* this event must have happened in the gtkframe: */
     assert (gdk_event_raw->motion.window
-	    == gtk_widget_get_window(screen->tme_gtk_screen_gtkimage));
+	    == gtk_widget_get_window(screen->tme_gtk_screen_gtkframe));
 
     /* set the event time: */
     tme_event.tme_mouse_event_time
@@ -145,9 +145,9 @@ _tme_gtk_mouse_mouse_event(GtkWidget *widget,
     assert (gdk_event_raw->type == GDK_BUTTON_PRESS
 	    || gdk_event_raw->type == GDK_BUTTON_RELEASE);
 
-    /* this event must have happened in the gtkimage: */
+    /* this event must have happened in the gtkframe: */
     assert (gdk_event_raw->button.window
-	    == gtk_widget_get_window(screen->tme_gtk_screen_gtkimage));
+	    == gtk_widget_get_window(screen->tme_gtk_screen_gtkframe));
 
     /* set the event time: */
     tme_event.tme_mouse_event_time
@@ -277,9 +277,9 @@ _tme_gtk_mouse_ebox_event(GtkWidget *widget,
 			  | GDK_BUTTON_RELEASE_MASK);
   }
 
-  /* get the current width and height of the framebuffer gtkimage, and
+  /* get the current width and height of the framebuffer gtkframe, and
      halve them to get the warp center: */
-  gdk_window_get_geometry(gtk_widget_get_window(screen->tme_gtk_screen_gtkimage),
+  gdk_window_get_geometry(gtk_widget_get_window(screen->tme_gtk_screen_gtkframe),
 			  &junk,
 			  &junk,
 			  &screen->tme_gtk_screen_mouse_warp_x,
@@ -293,7 +293,7 @@ _tme_gtk_mouse_ebox_event(GtkWidget *widget,
   /* grab the pointer: */
   rc
     = gdk_device_grab(screen->tme_gtk_screen_pointer,
-		      gtk_widget_get_window(screen->tme_gtk_screen_gtkimage),
+		      gtk_widget_get_window(screen->tme_gtk_screen_gtkframe),
 		      GDK_OWNERSHIP_NONE,
 		      TRUE,
 		      GDK_POINTER_MOTION_MASK

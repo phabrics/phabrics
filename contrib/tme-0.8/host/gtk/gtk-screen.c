@@ -45,14 +45,6 @@ _TME_RCSID("$Id: gtk-screen.c,v 1.11 2009/08/30 21:39:03 fredette Exp $");
 #include "gtk-display.h"
 #include <stdlib.h>
 
-/* macros: */
-
-/* the GTK 1.x gtk_image_new function is the GTK 2.x
-   gtk_image_new_from_image function: */
-#if GTK_MAJOR_VERSION == 1
-#define gtk_image_new_from_image gtk_image_new
-#endif /* GTK_MAJOR_VERSION == 1 */
-
 /* the GTK screens update thread: */
 void
 _tme_gtk_screen_th_update(struct tme_gtk_display *display)
@@ -109,7 +101,7 @@ _tme_gtk_screen_th_update(struct tme_gtk_display *display)
 
       /* if those contents changed, redraw the widget: */
       if (changed) {
-	gtk_widget_queue_draw(screen->tme_gtk_screen_gtkimage);
+	gtk_widget_queue_draw(screen->tme_gtk_screen_gtkframe);
       }
     }
 
@@ -158,6 +150,7 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
   struct tme_fb_connection *conn_fb_other;
   struct tme_fb_xlat fb_xlat_q;
   const struct tme_fb_xlat *fb_xlat_a;
+  int width, height;
   int scale;
   unsigned long fb_area, avail_area, percentage;
   gint width, height;
@@ -168,15 +161,8 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
   const tme_uint32_t *map_pixel_old;
   tme_uint32_t map_pixel_count_old;  
   tme_uint32_t colorset;
-  GdkPixbuf *gdkpixbuf;
   tme_uint32_t color_count;
   struct tme_fb_color *colors_tme;
-#if 0
-  cairo_t *cr;
-  cairo_surface_t *surface;
-  cairo_surface_type_t stype;
-  int stride;
-#endif
 
   /* recover our data structures: */
   display = conn_fb->tme_fb_connection.tme_connection_element->tme_element_private;
@@ -222,7 +208,7 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
     screen->tme_gtk_screen_fb_scale = -scale;
   }
 
-  /* get the required dimensions for the GdkPixbuf: */
+  /* get the required dimensions for the Gtkframe: */
   width = ((conn_fb_other->tme_fb_connection_width
 	    * scale)
 	   / TME_FB_XLAT_SCALE_NONE);
@@ -237,24 +223,20 @@ _tme_gtk_screen_mode_change(struct tme_fb_connection *conn_fb)
     = (scale == TME_FB_XLAT_SCALE_DOUBLE
        ? 2
        : 1);
-
-  /* if the previous gdkpixbuf isn't the right size: */
-  gdkpixbuf = screen->tme_gtk_screen_gdkpixbuf;
-  if (gdk_pixbuf_get_width(gdkpixbuf) != width
-      || gdk_pixbuf_get_height(gdkpixbuf) != (height + height_extra)) {
-    /* allocate a new gdkpixbuf: */
-    gdkpixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height + height_extra);
-    /* set the new image on the image widget: */
-    gtk_image_set_from_pixbuf(GTK_IMAGE(screen->tme_gtk_screen_gtkimage),
-			      gdkpixbuf);
-    /* destroy the previous gdkpixbuf and remember the new one: */
-    g_object_unref(screen->tme_gtk_screen_gdkpixbuf);
-    screen->tme_gtk_screen_gdkpixbuf = gdkpixbuf;
-#if 0
-    cr = gdk_cairo_create(gtk_widget_get_window(screen->tme_gtk_screen_gtkimage));
-    surface = cairo_get_target(cr);
-    stype = cairo_surface_get_type(surface);
-#endif
+  
+  /* if the previous gtkframe isn't the right size: */
+  if (cairo_image_surface_get_width(screen->tme_gtk_screen_surface) != width
+      || cairo_image_surface_get_height(screen->tme_gtk_screen_surface) != (height + height_extra)) {
+    /* set a minimum size */
+    gtk_widget_set_size_request(screen->tme_gtk_screen_gtkframe, width, height + height_extra);
+    if(screen->tme_gtk_screen_surface)
+      cairo_surface_destroy(screen->tme_gtk_screen_surface);
+    screen->tme_gtk_screen_surface
+      = gdk_window_create_similar_image_surface(gtk_widget_get_window(screen->tme_gtk_screen_gtkframe),
+						CAIRO_FORMAT_ARGB32,
+						gtk_widget_get_allocated_width(screen->tme_gtk_screen_gtkframe),
+						gtk_widget_get_allocated_height(screen->tme_gtk_screen_gtkframe),
+						0);
   }
 
   /* remember all previously allocated maps and colors, but otherwise
@@ -495,6 +477,24 @@ _tme_gtk_screen_submenu_scaling(void *_screen,
   return (NULL);
 }
 
+/* Redraw the screen from the surface. Note that the ::draw
+ * signal receives a ready-to-be-used cairo_t that is already
+ * clipped to only draw the exposed areas of the widget
+ */
+static gboolean
+_tme_gtk_screen_draw(GtkWidget *widget,
+		     cairo_t   *cr,
+		     gpointer   _screen)
+{
+  struct tme_gtk_screen *screen;
+
+  screen = (struct tme_gtk_screen *) _screen;
+  cairo_set_source_surface(cr, screen->tme_gtk_screen_surface, 0, 0);
+  cairo_paint(cr);
+
+  return FALSE;
+}
+
 /* this makes a new screen: */
 struct tme_gtk_screen *
 _tme_gtk_screen_new(struct tme_gtk_display *display)
@@ -507,8 +507,9 @@ _tme_gtk_screen_new(struct tme_gtk_display *display)
   GtkWidget *submenu;
   GtkWidget *menu_item;
   tme_uint8_t *bitmap_data;
+  int bitmap_width, bitmap_height;
   unsigned int y;
-  cairo_surface_t *surface;
+
 #define BLANK_SIDE (16 * 8)
 
   /* create the new screen and link it in: */
@@ -579,62 +580,46 @@ _tme_gtk_screen_new(struct tme_gtk_display *display)
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu_item), menu);
   gtk_menu_shell_append(GTK_MENU_SHELL(menu_bar), menu_item);
 
-  /* create an event box for the framebuffer area: */
-  screen->tme_gtk_screen_event_box
-    = gtk_event_box_new();
+  /* create the Gtkframe for the framebuffer area: */
+  screen->tme_gtk_screen_gtkframe = gtk_drawing_area_new();
 
-  /* pack the event box into the outer vertical packing box: */
-  gtk_box_pack_start(GTK_BOX(screen->tme_gtk_screen_vbox0), 
-		     screen->tme_gtk_screen_event_box,
-		     FALSE, FALSE, 0);
+  /* set a minimum size */
+  gtk_widget_set_size_request(screen->tme_gtk_screen_gtkframe, BLANK_SIDE, BLANK_SIDE);
 
-  /* show the event box: */
-  gtk_widget_show(screen->tme_gtk_screen_event_box);
-
-  /* create a GdkPixbuf of an alternating-bits area.  we must use
-     malloc() here since this memory will end up as part of an XImage,
-     and X will call free() on it: */
-  bitmap_data = (tme_uint8_t *)
-    malloc((BLANK_SIDE * BLANK_SIDE) / 8);
+  screen->tme_gtk_screen_surface
+    = gdk_window_create_similar_image_surface(gtk_widget_get_window(screen->tme_gtk_screen_gtkframe),
+					      CAIRO_FORMAT_A1,
+					      gtk_widget_get_allocated_width(screen->tme_gtk_screen_gtkframe),
+					      gtk_widget_get_allocated_height(screen->tme_gtk_screen_gtkframe),
+					      0);
+  
+  /* create an image surface of an alternating-bits area. */
+  bitmap_data = cairo_image_surface_get_data(screen->tme_gtk_screen_surface);
   assert(bitmap_data != NULL);
+  bitmap_width = cairo_image_surface_get_width(screen->tme_gtk_screen_surface) / 8;
+  bitmap_height = cairo_image_surface_get_height(screen->tme_gtk_screen_surface);
+  cairo_surface_flush(screen->tme_gtk_screen_surface);
   for (y = 0;
-       y < BLANK_SIDE;
+       y < bitmap_height;
        y++) {
-    memset(bitmap_data
-	   + (y * BLANK_SIDE / 8),
+    memset(bitmap_data + y * bitmap_width,
 	   (y & 1
 	    ? 0x33
 	    : 0xcc),
-	   (BLANK_SIDE / 8));
+	   bitmap_width);
   }
+  cairo_surface_mark_dirty(screen->tme_gtk_screen_surface);
 
-  surface
-    = cairo_image_surface_create_for_data(bitmap_data, 
-					  CAIRO_FORMAT_A1, 
-					  BLANK_SIDE, 
-					  BLANK_SIDE, 
-					  0);
+  g_signal_connect(screen->tme_gtk_screen_gtkframe, "draw",
+		   G_CALLBACK(_tme_gtk_screen_draw), screen);
 
-  screen->tme_gtk_screen_gdkpixbuf
-    = gdk_pixbuf_get_from_surface(surface,
-				  0, 0,
-				  BLANK_SIDE, BLANK_SIDE);
+  /* pack the Gtkframe into the outer vertical packing box: */
+  gtk_box_pack_start(GTK_BOX(screen->tme_gtk_screen_vbox0), 
+		     screen->tme_gtk_screen_gtkframe,
+		     FALSE, FALSE, 0);
 
-  cairo_surface_destroy(surface);
-
-  /* create the GtkImage for the framebuffer area: */
-  screen->tme_gtk_screen_gtkimage 
-    = gtk_image_new_from_pixbuf(screen->tme_gtk_screen_gdkpixbuf);
-
-  /* Turn off double-buffering to save rendering time (since it's done already) */
-  gtk_widget_set_double_buffered(screen->tme_gtk_screen_gtkimage, FALSE);
-
-  /* add the GtkImage to the event box: */
-  gtk_container_add(GTK_CONTAINER(screen->tme_gtk_screen_event_box), 
-		    screen->tme_gtk_screen_gtkimage);
-
-  /* show the GtkImage: */
-  gtk_widget_show(screen->tme_gtk_screen_gtkimage);
+  /* show the Gtkframe: */
+  gtk_widget_show(screen->tme_gtk_screen_gtkframe);
 
   /* show the outer vertical packing box: */
   gtk_widget_show(screen->tme_gtk_screen_vbox0);
