@@ -256,20 +256,25 @@ AC_DEFINE(HAVE_AF_PACKET, [], [Define if you have AF_PACKET.])
 AC_MSG_RESULT(no)
 ])
 
-dnl Checks for BPF.
+dnl Checks for Ethernet.
 tme_raw_type=
-AC_CHECK_HEADER(linux/filter.h, [tme_raw_type=bpf],
+AC_CHECK_HEADER(linux/if_tun.h, [tme_raw_type=tap],
+[AC_CHECK_HEADER(net/if_tun.h, [tme_raw_type=tap])])
+
+AC_CHECK_HEADER(linux/filter.h, [tme_raw_type=${tme_raw_type}bpf],
 [AC_CHECK_HEADER(net/bpf.h, 
 [AC_EGREP_CPP(found_BIOCSHDRCMPLT, 
 [#include <net/bpf.h>
 #ifdef BIOCSHDRCMPLT
 found_BIOCSHDRCMPLT
 #endif
-], [tme_raw_type=bpf])])])
+], [tme_raw_type=${tme_raw_type}bpf])])])
 
 AC_MSG_CHECKING([for raw Ethernet access method])
 case "x${tme_raw_type}" in
-xbpf) TME_HOSTS="${TME_HOSTS} bsd" ;;
+xtap) TME_HOSTS="${TME_HOSTS} eth tun" ;;
+xbpf) TME_HOSTS="${TME_HOSTS} eth bsd" ;;
+xtapbpf) TME_HOSTS="${TME_HOSTS} eth tun bsd" ;;
 x) tme_raw_type=none ;;
 esac
 AC_MSG_RESULT($tme_raw_type)
@@ -726,10 +731,11 @@ AC_ARG_ENABLE(debug,
 [ ], [enable_debug=no])
 if test "x${enable_debug}" = "xyes"; then
   CPPFLAGS="${CPPFLAGS-} -DTME_NO_DEBUG_LOCKS -DTME_RECODE_DEBUG -D_TME_SPARC_STATS -DGTK_DISABLE_SINGLE_INCLUDES"
-  CFLAGS="${CFLAGS-} -g -O0"
-  CXXFLAGS="${CXXFLAGS-} -g3 -O0"
+  CFLAGS="${CFLAGS-} -Og"
+  CXXFLAGS="${CXXFLAGS-} -g3 -Og"
 else
-  CPPFLAGS="${CPPFLAGS-} -DTME_NO_LOG -DTME_NO_DEBUG_LOCKS -DTME_NO_AUDIT_ATOMICS -DNDEBUG"
+  CPPFLAGS="${CPPFLAGS-} -DTME_NO_DEBUG_LOCKS -DTME_NO_AUDIT_ATOMICS -DNDEBUG -DTME_RECODE_DEBUG -D_TME_SPARC_STATS -DGTK_DISABLE_SINGLE_INCLUDES"
+  CFLAGS="${CFLAGS-} -O1"
 fi
 AC_ARG_ENABLE(warnings,
 [  --disable-warnings      don't compile with warnings turned on (default=do)],
@@ -970,7 +976,9 @@ AC_CONFIG_FILES([Makefile
 	  machine/sun4u/Makefile
           host/Makefile
           host/posix/Makefile
+          host/eth/Makefile
           host/bsd/Makefile
+          host/tun/Makefile
           host/gtk/Makefile
           bus/Makefile
           bus/multibus/Makefile
