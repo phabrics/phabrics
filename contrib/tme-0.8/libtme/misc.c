@@ -390,21 +390,21 @@ tme_uint32_t
 tme_misc_cycles_per_ms(void)
 {
   union tme_value64 cycles_start;
-  struct timeval timeval_start;
+  tme_time_t timeval_start;
   union tme_value64 cycles_finish;
-  struct timeval timeval_finish;
+  tme_time_t timeval_finish;
   tme_uint32_t ms_elapsed;
   tme_misc_cycles_scaling_t cycles_elapsed;
 
   /* sample the cycle counter and the current time: */
   cycles_start = tme_misc_cycles();
-  gettimeofday(&timeval_start, NULL);
+  tme_get_time(&timeval_start);
 
   /* spin until at least a second has passed: */
   do {
     tme_misc_cycles_per_ms_spin++;
     cycles_finish = tme_misc_cycles();
-    gettimeofday(&timeval_finish, NULL);
+    tme_get_time(&timeval_finish);
   } while ((timeval_finish.tv_sec == timeval_start.tv_sec)
 	   || (timeval_finish.tv_sec == (timeval_start.tv_sec + 1)
 	       && timeval_finish.tv_usec < timeval_start.tv_usec));
@@ -431,18 +431,18 @@ union tme_value64
 tme_misc_cycles(void)
 {
 #ifdef TME_HAVE_INT64_T
-  struct timeval now;
+  tme_time_t now;
   tme_uint64_t cycles;
   union tme_value64 value;
 
-  gettimeofday(&now, NULL);
+  tme_get_time(&now);
   cycles = now.tv_sec;
   cycles *= 1000000;
   cycles += now.tv_usec;
   value.tme_value64_uint = cycles;
   return (value);
 #else  /* !TME_HAVE_INT64_T */
-  struct timeval now;
+  tme_time_t now;
   tme_misc_cycles_scaling_t two_to_the_thirtysecond;
   tme_misc_cycles_scaling_t cycles_sec;
   tme_uint32_t cycles_lo;
@@ -450,7 +450,7 @@ tme_misc_cycles(void)
   union tme_value64 value;
 
   /* get the current time: */
-  gettimeofday(&now, NULL);
+  tme_get_time(&now);
 
   /* make 2^32: */
   two_to_the_thirtysecond = 65536;

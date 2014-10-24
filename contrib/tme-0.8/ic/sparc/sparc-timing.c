@@ -268,7 +268,7 @@ _tme_sparc_timing_loop_start(struct tme_sparc *ic,
   tme_sparc_ireg_umax_t value_rd;
   signed int addend;
   tme_uint32_t insn_branch_dot;
-  const struct timeval *sleep;
+  const tme_time_t *sleep;
   unsigned int op2;
   unsigned int cond;
   tme_sparc_ireg_umax_t value_sign;
@@ -281,7 +281,7 @@ _tme_sparc_timing_loop_start(struct tme_sparc *ic,
   union tme_value64 cycles_finish;
   tme_sparc_ireg_umax_t usec;
   tme_uint32_t usec32;
-  static struct timeval sleep_buffer;
+  static tme_time_t sleep_buffer;
 
   /* at this point, the timing loop branch to . has been taken, and
      the PCs have been updated, so both PC and PC_next_next point to
@@ -517,7 +517,7 @@ _tme_sparc_timing_loop_start(struct tme_sparc *ic,
   assert (cond != TME_SPARC_COND_N);
 
   /* assume that, if we block, we will block forever: */
-  sleep = (const struct timeval *) NULL;
+  sleep = (const tme_time_t *) NULL;
 
   /* if the condition is always, there is no maximum number of times
      that the branch to . can be taken: */
@@ -682,8 +682,7 @@ _tme_sparc_timing_loop_start(struct tme_sparc *ic,
 	usec = cycles_scaled_max / ic->tme_sparc_cycles_scaled_per_usec;
 
 	/* set the sleep time: */
-	sleep_buffer.tv_sec = (usec / 1000000);
-	sleep_buffer.tv_usec = (usec % 1000000);
+	TME_TIME_ADDV(sleep_buffer, (usec / 1000000), (usec % 1000000));
       }
 
       /* otherwise, the number of cycles to loop fits in 32 bits: */
@@ -693,20 +692,20 @@ _tme_sparc_timing_loop_start(struct tme_sparc *ic,
 	usec32 = ((tme_uint32_t) cycles_scaled_max) / ic->tme_sparc_cycles_scaled_per_usec;
 
 	/* assume that we will sleep for less than one second: */
-	sleep_buffer.tv_sec = 0;
+	TME_TIME_SEC(sleep_buffer) = 0;
 
 	/* if the sleep time is one second or more: */
 	if (__tme_predict_false(usec32 >= 1000000)) {
 
 	  /* set the sleep time seconds: */
-	  sleep_buffer.tv_sec = (usec32 / 1000000);
+	  TME_TIME_SEC(sleep_buffer) = (usec32 / 1000000);
 
 	  /* get the microseconds: */
 	  usec32 = (usec32 % 1000000);
 	}
 
 	/* set the sleep time microseconds: */
-	sleep_buffer.tv_usec = usec32;
+	TME_TIME_SET_USEC(sleep_buffer, usec32);
       }
 
       /* we won't block forever: */

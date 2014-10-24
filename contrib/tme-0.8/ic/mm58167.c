@@ -80,8 +80,8 @@ struct tme_mm58167 {
 
   /* the last time sampled.  the tv_usec field is actually a value in
      milliseconds, since we divide it by 1000 right after
-     gettimeofday() returns: */
-  struct timeval tme_mm58167_sampled_time;
+     tme_get_time() returns: */
+  tme_time_t tme_mm58167_sampled_time;
 
   /* the struct tm for the last time sampled: */
   struct tm tme_mm58167_sampled_tm;
@@ -107,7 +107,7 @@ _tme_mm58167_bus_cycle(void *_mm58167, struct tme_bus_cycle *cycle_init)
   tme_uint8_t buffer, value;
   struct tme_bus_cycle cycle_resp;
   unsigned int reg;
-  struct timeval now;
+  tme_time_t now;
   time_t _now;
   struct tm *now_tm;
   int reg_is_bcd;
@@ -130,7 +130,7 @@ _tme_mm58167_bus_cycle(void *_mm58167, struct tme_bus_cycle *cycle_init)
 
   /* sample the time, and drop from microsecond accuracy to
      millisecond accuracy: */
-  gettimeofday(&now, NULL);
+  tme_get_time(&now);
   now.tv_usec /= 1000;
 
   /* if the seconds value has changed, convert it, and an update is

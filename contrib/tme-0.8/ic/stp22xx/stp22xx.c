@@ -252,7 +252,7 @@ tme_stp22xx_leave(struct tme_stp22xx *stp22xx)
 void
 tme_stp22xx_cond_sleep_yield(struct tme_stp22xx *stp22xx,
 			     struct tme_stp22xx_cond *cond,
-			     const struct timeval *sleep)
+			     const tme_time_t *sleep)
 {
   signed long completion_i;
   struct tme_completion *completion;

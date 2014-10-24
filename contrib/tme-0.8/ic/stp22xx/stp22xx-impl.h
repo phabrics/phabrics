@@ -192,7 +192,7 @@ struct tme_stp22xx *tme_stp22xx_enter_master _TME_P((struct tme_bus_connection *
 void tme_stp22xx_leave _TME_P((struct tme_stp22xx *));
 
 /* this waits on a condition, with an optional sleep time: */
-void tme_stp22xx_cond_sleep_yield _TME_P((struct tme_stp22xx *, struct tme_stp22xx_cond *, const struct timeval *));
+void tme_stp22xx_cond_sleep_yield _TME_P((struct tme_stp22xx *, struct tme_stp22xx_cond *, const tme_time_t *));
 
 /* this validates a completion: */
 void tme_stp22xx_completion_validate _TME_P((struct tme_stp22xx *, struct tme_completion *));

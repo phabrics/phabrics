@@ -147,7 +147,7 @@ struct tme_isil7170 {
 #ifdef TME_ISIL7170_TRACK_INT_RATE
 
   /* the end time of this sample: */
-  struct timeval tme_isil7170_int_sample_time;
+  tme_time_t tme_isil7170_int_sample_time;
 
   /* the number of distinct interrupts that have been delivered during
      this sample: */
@@ -303,7 +303,7 @@ _tme_isil7170_th_timer(struct tme_isil7170 *isil7170)
   tme_uint8_t int_mask;
   tme_uint32_t sleep_usec;
 #ifdef TME_ISIL7170_TRACK_INT_RATE
-  struct timeval now;
+  tme_time_t now;
 #endif /* TME_ISIL7170_TRACK_INT_RATE */
 
   /* lock the mutex: */
@@ -329,10 +329,8 @@ _tme_isil7170_th_timer(struct tme_isil7170 *isil7170)
       }
 
       /* if the sample time has finished, report on the interrupt rate: */
-      gettimeofday(&now, NULL);
-      if (now.tv_sec > isil7170->tme_isil7170_int_sample_time.tv_sec
-	  || (now.tv_sec == isil7170->tme_isil7170_int_sample_time.tv_sec
-	      && now.tv_usec > isil7170->tme_isil7170_int_sample_time.tv_usec)) {
+      tme_get_time(&now);
+      if (TME_TIME_GT(now, isil7170->tme_isil7170_int_sample_time)) {
 	if (isil7170->tme_isil7170_int_sample > 0) {
 	  tme_log(TME_ISIL7170_LOG_HANDLE(isil7170),
 		  0, TME_OK,
@@ -340,13 +338,13 @@ _tme_isil7170_th_timer(struct tme_isil7170 *isil7170)
 		   "timer interrupt rate: %ld/sec",
 		   (isil7170->tme_isil7170_int_sample
 		    / (TME_ISIL7170_TRACK_INT_RATE
-		       + (unsigned long) (now.tv_sec
-					  - isil7170->tme_isil7170_int_sample_time.tv_sec)))));
+		       + (unsigned long) (TME_TIME_SEC(now)
+					  - TME_TIME_SEC(isil7170->tme_isil7170_int_sample_time))))));
 	}
 
 	/* reset the sample: */
-	isil7170->tme_isil7170_int_sample_time.tv_sec = now.tv_sec + TME_ISIL7170_TRACK_INT_RATE;
-	isil7170->tme_isil7170_int_sample_time.tv_usec = now.tv_usec;
+        TME_TIME_SEC(now) += TME_ISIL7170_TRACK_INT_RATE;
+	isil7170->tme_isil7170_int_sample_time = now;
 	isil7170->tme_isil7170_int_sample = 0;
       }
 
@@ -406,7 +404,7 @@ _tme_isil7170_bus_cycle(void *_isil7170, struct tme_bus_cycle *cycle_init)
   tme_uint8_t buffer, value, value_old;
   struct tme_bus_cycle cycle_resp;
   unsigned int reg;
-  struct timeval now;
+  tme_time_t now;
   time_t _now;
   struct tm *now_tm, now_tm_buffer;
 
@@ -433,12 +431,12 @@ _tme_isil7170_bus_cycle(void *_isil7170, struct tme_bus_cycle *cycle_init)
 	  && reg == TME_ISIL7170_REG_CMD)) {
 
     /* sample the time of day: */
-    gettimeofday(&now, NULL);
-    _now = now.tv_sec;
+    tme_get_time(&now);
+    _now = TME_TIME_SEC(now);
     now_tm = gmtime_r(&_now, &now_tm_buffer);
 
     /* put the time-of-day into the registers: */
-    isil7170->tme_isil7170_regs[TME_ISIL7170_REG_CSEC] = now.tv_usec / 10000;
+    isil7170->tme_isil7170_regs[TME_ISIL7170_REG_CSEC] = TME_TIME_GET_USEC(now) / 10000;
     isil7170->tme_isil7170_regs[TME_ISIL7170_REG_HOUR] = now_tm->tm_hour;
     isil7170->tme_isil7170_regs[TME_ISIL7170_REG_MIN] = now_tm->tm_min;
     isil7170->tme_isil7170_regs[TME_ISIL7170_REG_SEC] = now_tm->tm_sec;

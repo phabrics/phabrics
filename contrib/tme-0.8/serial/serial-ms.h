@@ -115,7 +115,7 @@ struct tme_serial_ms {
   unsigned int tme_serial_ms_serial_ctrl;
 
   /* the time when the last events were read: */
-  struct timeval tme_serial_ms_event_read_last;
+  tme_time_t tme_serial_ms_event_read_last;
 
   /* if nonzero, the rate-limiting microseconds per event: */
   unsigned long tme_serial_ms_rate_usec;

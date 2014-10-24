@@ -134,7 +134,7 @@ static void
 _tme_stp222x_mdu_retry_th(void *_stp222x)
 {
   struct tme_stp222x *stp222x;
-  struct timeval *sleep;
+  tme_time_t *sleep;
   signed long buffer_i;
   unsigned int dispatch_state;
 
@@ -557,8 +557,7 @@ _tme_stp222x_mdu_retry_set(struct tme_stp222x *stp222x)
 #error "TME_STP222X_MDU_RETRY_TIMER_LIMIT changed"
 #endif
   sleep_usec = (sleep_usec + TME_STP222X_MDU_RETRY_TIMER_LIMIT) / (TME_STP222X_MDU_RETRY_TIMER_LIMIT + 1);
-  stp222x->tme_stp222x_mdu_retry_sleep.tv_sec = 0;
-  stp222x->tme_stp222x_mdu_retry_sleep.tv_usec = sleep_usec;
+  TME_TIME_SETV(stp222x->tme_stp222x_mdu_retry_sleep, 0, sleep_usec);
 }
 
 /* the MDU IMR and retry register handler: */

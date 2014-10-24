@@ -322,8 +322,8 @@ struct tme_ncr53c9x {
   /* the command sequence label for a timeout handler, the timeout
      length, and the timeout absolute time: */
   unsigned int tme_ncr53c9x_cmd_sequence_timeout;
-  struct timeval tme_ncr53c9x_timeout_length;
-  struct timeval tme_ncr53c9x_timeout_time;
+  tme_time_t tme_ncr53c9x_timeout_length;
+  tme_time_t tme_ncr53c9x_timeout_time;
 
   /* the command sequence SCSI bus transfer residual: */
   unsigned long tme_ncr53c9x_transfer_resid;
@@ -1048,18 +1048,15 @@ _tme_ncr53c9x_cs_timeout(struct tme_ncr53c9x *ncr53c9x, unsigned int msec, unsig
 {
 
   /* save the timeout length: */
-  ncr53c9x->tme_ncr53c9x_timeout_length.tv_sec = (msec / 1000);
-  ncr53c9x->tme_ncr53c9x_timeout_length.tv_usec = (msec % 1000) * 1000;
+  TME_TIME_SETV(ncr53c9x->tme_ncr53c9x_timeout_length, (msec / 1000), (msec % 1000) * 1000);
 
   /* get the current time: */
-  gettimeofday(&ncr53c9x->tme_ncr53c9x_timeout_time, NULL);
+  tme_get_time(&ncr53c9x->tme_ncr53c9x_timeout_time);
 
   /* add the timeout length to get the timeout time: */
-  ncr53c9x->tme_ncr53c9x_timeout_time.tv_sec += ncr53c9x->tme_ncr53c9x_timeout_length.tv_sec;
-  ncr53c9x->tme_ncr53c9x_timeout_time.tv_usec += ncr53c9x->tme_ncr53c9x_timeout_length.tv_usec;
-  if (ncr53c9x->tme_ncr53c9x_timeout_time.tv_usec >= 1000000) {
-    ncr53c9x->tme_ncr53c9x_timeout_time.tv_usec -= 1000000;
-    ncr53c9x->tme_ncr53c9x_timeout_time.tv_sec++;
+  TME_TIME_INC(ncr53c9x->tme_ncr53c9x_timeout_time, ncr53c9x->tme_ncr53c9x_timeout_length);
+  if (TME_TIME_GET_USEC(ncr53c9x->tme_ncr53c9x_timeout_time) >= 1000000) {
+    TME_TIME_ADDV(ncr53c9x->tme_ncr53c9x_timeout_time, 1, -1000000);
   }
 
   /* set the timeout label: */
@@ -1244,7 +1241,7 @@ _tme_ncr53c9x_update(struct tme_ncr53c9x *ncr53c9x)
   tme_scsi_data_t scsi_data;
   tme_scsi_control_t phase;
   tme_scsi_data_t ids;
-  struct timeval now;
+  tme_time_t now;
   tme_uint32_t count;
 
   /* loop forever: */
@@ -1395,13 +1392,10 @@ _tme_ncr53c9x_update(struct tme_ncr53c9x *ncr53c9x)
       if (ncr53c9x->tme_ncr53c9x_cmd_sequence_timeout != TME_NCR53C9X_CMD_SEQUENCE_UNDEF) {
 
 	/* get the current time: */
-	gettimeofday(&now, NULL);
+	tme_get_time(&now);
 
 	/* if the timeout has expired: */
-	if (now.tv_sec > ncr53c9x->tme_ncr53c9x_timeout_time.tv_sec
-	    || (now.tv_sec == ncr53c9x->tme_ncr53c9x_timeout_time.tv_sec
-		&& now.tv_usec >= ncr53c9x->tme_ncr53c9x_timeout_time.tv_usec)) {
-
+	if (TME_TIME_GT(now, ncr53c9x->tme_ncr53c9x_timeout_time)) {
 	  /* goto the timeout label for the command sequence, and
              cancel the timeout: */
 	  cmd_sequence = ncr53c9x->tme_ncr53c9x_cmd_sequence_timeout;

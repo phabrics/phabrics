@@ -246,10 +246,10 @@ struct tme_sun4_timer {
   tme_uint32_t tme_sun4_timer_limit;
 
   /* the period of this timer: */
-  struct timeval tme_sun4_timer_period;
+  tme_time_t tme_sun4_timer_period;
 
   /* when the timer reaches its next limit: */
-  struct timeval tme_sun4_timer_limit_next;
+  tme_time_t tme_sun4_timer_limit_next;
 
   /* a condition for waking up the thread for this timer: */
   tme_cond_t tme_sun4_timer_cond;
@@ -259,7 +259,7 @@ struct tme_sun4_timer {
 
   /* these are used to track the interrupt rate for this timer: */
   tme_uint32_t tme_sun4_timer_track_ints;
-  struct timeval tme_sun4_timer_track_sample;
+  tme_time_t tme_sun4_timer_track_sample;
 };
 
 /* a sun4: */

@@ -435,7 +435,7 @@ _tme_bsd_bpf_read(struct tme_ethernet_connection *conn_eth,
 
 	/* update the current release time, by taking the current time
 	   and subtracting the delay time: */
-	gettimeofday(&bpf->tme_eth_delay_release, NULL);
+	tme_get_time(&bpf->tme_eth_delay_release);
 	if (bpf->tme_eth_delay_release.tv_usec < bpf->tme_eth_delay_time) {
 	  bpf->tme_eth_delay_release.tv_usec += 1000000UL;
 	  bpf->tme_eth_delay_release.tv_sec--;

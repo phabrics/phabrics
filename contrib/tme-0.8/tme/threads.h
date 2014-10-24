@@ -132,7 +132,7 @@ int tme_sjlj_rwlock_unlock _TME_P((struct tme_sjlj_rwlock *, _tme_const char *, 
 typedef int tme_cond_t;
 #define tme_cond_init(x) do { } while (/* CONSTCOND */ 0)
 void tme_sjlj_cond_wait_yield _TME_P((tme_cond_t *, tme_mutex_t *));
-void tme_sjlj_cond_sleep_yield _TME_P((tme_cond_t *, tme_mutex_t *, const struct timeval *));
+void tme_sjlj_cond_sleep_yield _TME_P((tme_cond_t *, tme_mutex_t *, const tme_time_t *));
 void tme_sjlj_cond_notify _TME_P((tme_cond_t *, int));
 #define tme_cond_wait_yield tme_sjlj_cond_wait_yield
 #define tme_cond_sleep_yield tme_sjlj_cond_sleep_yield
@@ -161,7 +161,7 @@ void tme_sjlj_sleep_yield _TME_P((unsigned long, unsigned long));
 #define tme_thread_read read
 #define tme_thread_write write
 #define tme_thread_select select
-int tme_sjlj_select_yield _TME_P((int, fd_set *, fd_set *, fd_set *, struct timeval *));
+int tme_sjlj_select_yield _TME_P((int, fd_set *, fd_set *, fd_set *, tme_time_t *));
 ssize_t tme_sjlj_read_yield _TME_P((int, void *, size_t));
 ssize_t tme_sjlj_write_yield _TME_P((int, void *, size_t));
 #define tme_thread_select_yield tme_sjlj_select_yield
@@ -169,7 +169,7 @@ ssize_t tme_sjlj_write_yield _TME_P((int, void *, size_t));
 #define tme_thread_write_yield tme_sjlj_write_yield
 
 /* time: */
-void tme_sjlj_gettimeofday _TME_P((struct timeval *));
+void tme_sjlj_gettimeofday _TME_P((tme_time_t *));
 #define tme_gettimeofday tme_sjlj_gettimeofday
 extern int tme_sjlj_thread_short;
 #define tme_thread_long() do { tme_sjlj_thread_short = FALSE; } while (/* CONSTCOND */ 0)

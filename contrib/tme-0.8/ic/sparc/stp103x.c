@@ -326,7 +326,7 @@ struct tme_stp103x {
 
   /* the tick compare condition and time: */
   tme_cond_t tme_stp103x_tick_compare_cond;
-  struct timeval tme_stp103x_tick_compare_time;
+  tme_time_t tme_stp103x_tick_compare_time;
 
   /* the UDB low and high control registers: */
   tme_uint16_t tme_stp103x_udb_control[2];
@@ -429,9 +429,9 @@ static const tme_bus_lane_t _tme_stp103x_bus_router_cacheable[1 << TME_BUS128_LO
 /* this maps a virtual address: */
 static void _tme_stp103x_ls_address_map _TME_P((struct tme_sparc *, struct tme_sparc_ls *));
 
-/* this makes a never struct timeval: */
+/* this makes a never tme_time_t: */
 static inline void
-tme_misc_timeval_never(struct timeval *tv)
+tme_misc_timeval_never(tme_time_t *tv)
 {
   tv->tv_sec = 0;
   tv->tv_sec--;
@@ -975,7 +975,7 @@ TME_SPARC_FORMAT3(_tme_stp103x_wrasr, tme_uint64_t)
   tme_uint64_t value_xor;
   unsigned int reg_rd;
   tme_uint64_t tick;
-  struct timeval tick_compare_time;
+  tme_time_t tick_compare_time;
   tme_uint64_t cycles_scaled;
   tme_uint64_t usec64;
   tme_uint32_t usec32;
@@ -1048,7 +1048,7 @@ TME_SPARC_FORMAT3(_tme_stp103x_wrasr, tme_uint64_t)
 	    tick &= TME_SPARC64_TICK_COUNTER;
 
 	    /* get the current time: */
-	    gettimeofday(&tick_compare_time, NULL);
+	    tme_get_time(&tick_compare_time;
 
 	    /* get the number of cycles until the compare value is
 	       reached: */
@@ -3744,12 +3744,12 @@ static void
 _tme_stp103x_tick_compare_th(void *_ic)
 {
   struct tme_sparc *ic;
-  struct timeval now;
+  tme_time_t now;
   unsigned long now_tv_sec;
   unsigned long now_tv_usec;
   unsigned long tick_compare_time_tv_sec;
   unsigned long tick_compare_time_tv_usec;
-  struct timeval sleep;
+  tme_time_t sleep;
 
   /* recover our data structure: */
   ic = (struct tme_sparc *) _ic;

@@ -114,7 +114,7 @@ struct tme_ethernet {
   unsigned long tme_eth_delay_time;
 
   /* all packets received on or before this time can be released: */
-  struct timeval tme_eth_delay_release;
+  tme_time_t tme_eth_delay_release;
 
   /* when nonzero, the packet delay sleep time, in microseconds: */
   unsigned long tme_eth_delay_sleep;

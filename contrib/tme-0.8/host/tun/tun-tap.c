@@ -160,7 +160,7 @@ struct tme_tun_tap {
   unsigned long tme_tun_tap_delay_time;
 
   /* all packets received on or before this time can be released: */
-  struct timeval tme_tun_tap_delay_release;
+  tme_time_t tme_tun_tap_delay_release;
 
   /* when nonzero, the packet delay sleep time, in microseconds: */
   unsigned long tme_tun_tap_delay_sleep;

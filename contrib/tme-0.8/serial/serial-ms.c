@@ -69,7 +69,7 @@ _tme_serial_ms_callout(struct tme_serial_ms *serial_ms, int new_callouts)
   struct tme_serial_config config;
   tme_uint8_t buffer_input[32];
   tme_serial_data_flags_t data_flags;
-  struct timeval now;
+  tme_time_t now;
   unsigned long rate_sleep_usec;
   unsigned long passed_sec;
   long passed_usec;
@@ -235,7 +235,7 @@ _tme_serial_ms_callout(struct tme_serial_ms *serial_ms, int new_callouts)
     if (callouts & TME_SERIAL_MS_CALLOUT_MOUSE_READ) {
 
       /* get the current time: */
-      gettimeofday(&now, NULL);
+      tme_get_time(&now);
 
       /* if we're not already doing a rate-limiting sleep: */
       rate_sleep_usec = serial_ms->tme_serial_ms_rate_sleep_usec;
@@ -243,15 +243,15 @@ _tme_serial_ms_callout(struct tme_serial_ms *serial_ms, int new_callouts)
 
 	/* see how many microseconds have passed since the last event
 	   was read, clipping it at one second: */
-	passed_sec = now.tv_sec;
-	passed_usec = now.tv_usec;
-	passed_usec -= serial_ms->tme_serial_ms_event_read_last.tv_usec;
+	passed_sec = TME_TIME_SEC(now);
+	passed_usec = TME_TIME_GET_USEC(now);
+	passed_usec -= TME_TIME_GET_USEC(serial_ms->tme_serial_ms_event_read_last);
 	if (passed_usec < 0) {
 	  passed_sec -= 1;
 	  passed_usec += 1000000;
 	}
 	assert (passed_usec > 0 && passed_usec < 1000000);
-	passed_sec -= serial_ms->tme_serial_ms_event_read_last.tv_sec;
+	passed_sec -= TME_TIME_SEC(serial_ms->tme_serial_ms_event_read_last);
 	if (passed_sec > 0) {
 	  passed_usec = 1000000;
 	}

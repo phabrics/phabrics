@@ -159,7 +159,7 @@ _tme_mk48txx_bus_cycle(void *_mk48txx, struct tme_bus_cycle *cycle_init)
   tme_uint8_t buffer, value;
   struct tme_bus_cycle cycle_resp;
   unsigned int reg;
-  struct timeval now;
+  tme_time_t now;
   time_t _now;
   struct tm *now_tm, now_tm_buffer;
 
@@ -184,8 +184,8 @@ _tme_mk48txx_bus_cycle(void *_mk48txx, struct tme_bus_cycle *cycle_init)
 	  | TME_MK48TXX_CSR_WRITE)) == 0) {
 
     /* sample the time of day: */
-    gettimeofday(&now, NULL);
-    _now = now.tv_sec;
+    tme_get_time(&now);
+    _now = TME_TIME_SEC(now);
     now_tm = gmtime_r(&_now, &now_tm_buffer);
 
     /* put the time-of-day into the registers: */

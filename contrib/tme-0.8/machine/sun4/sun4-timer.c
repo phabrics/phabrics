@@ -147,11 +147,11 @@ _tme_sun4_timer_int_force(struct tme_sun4 *sun4,
 /* the sun4 timer update function.  it must be called with the mutex
    locked: */
 static void
-_tme_sun4_timer_update(struct tme_sun4_timer *timer, struct timeval *now, struct timeval *sleep)
+_tme_sun4_timer_update(struct tme_sun4_timer *timer, tme_time_t *now, tme_time_t *sleep)
 {
 
   /* get the current time: */
-  gettimeofday(now, NULL);
+  tme_get_time(now);
 
 #ifdef TME_SUN4_TIMER_TRACK_INT_RATE
 
@@ -249,7 +249,7 @@ _tme_sun4_timer_reset(struct tme_sun4_timer *timer)
     ticks = ticks_max;
   }
 
-  /* convert the timer's period from 500ns ticks to a struct timeval
+  /* convert the timer's period from 500ns ticks to a tme_time_t
      and save it: */
   usecs = ticks / 2;
   timer->tme_sun4_timer_period.tv_sec = 0;
@@ -260,7 +260,7 @@ _tme_sun4_timer_reset(struct tme_sun4_timer *timer)
   timer->tme_sun4_timer_period.tv_usec = usecs;
 
   /* set the next limit time for this timer: */
-  gettimeofday(&timer->tme_sun4_timer_limit_next, NULL);
+  tme_get_time(&timer->tme_sun4_timer_limit_next);
   timer->tme_sun4_timer_limit_next.tv_sec += timer->tme_sun4_timer_period.tv_sec;
   timer->tme_sun4_timer_limit_next.tv_usec += timer->tme_sun4_timer_period.tv_usec;
   if (timer->tme_sun4_timer_limit_next.tv_usec >= 1000000) {
@@ -274,8 +274,8 @@ static void
 _tme_sun4_timer_th(struct tme_sun4_timer *timer)
 {
   struct tme_sun4 *sun4;
-  struct timeval now;
-  struct timeval sleep;
+  tme_time_t now;
+  tme_time_t sleep;
 
   /* recover our sun4: */
   sun4 = timer->tme_sun4_timer_sun4;
@@ -310,8 +310,8 @@ _tme_sun4_timer_cycle_control(void *_sun4, struct tme_bus_cycle *cycle_init)
   tme_uint32_t reg;
   tme_uint32_t value32;
   struct tme_bus_cycle cycle_resp;
-  struct timeval now;
-  struct timeval last_reset;
+  tme_time_t now;
+  tme_time_t last_reset;
   tme_uint32_t counter_one;
   tme_uint32_t usecs;
   tme_uint32_t ticks;

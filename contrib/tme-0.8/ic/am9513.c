@@ -118,7 +118,7 @@ struct tme_am9513 {
     unsigned int tme_am9513_counter_flags;
 #ifdef TME_AM9513_TRACK_INT_RATE
     unsigned long tme_am9513_counter_int_sample;
-    struct timeval tme_am9513_counter_int_sample_time;
+    tme_time_t tme_am9513_counter_int_sample_time;
 #endif /* TME_AM9513_TRACK_INT_RATE */
   } tme_am9513_counters[5];
 
@@ -132,7 +132,7 @@ struct tme_am9513 {
   tme_uint8_t tme_am9513_output_pins_last;
 
   /* the last time our connection thread ran: */
-  struct timeval tme_am9513_conn_last;
+  tme_time_t tme_am9513_conn_last;
 };
 
 /* the Am9513 doesn't have any concept of endianness because it has a
@@ -342,7 +342,7 @@ _tme_am9513_callout(struct tme_am9513 *am9513)
 static void
 _tme_am9513_th_timer(struct tme_am9513 *am9513)
 {
-  struct timeval then, elapsed;
+  tme_time_t then, elapsed;
   tme_uint16_t counter_mode;
   tme_uint32_t basic_elapsed;
   tme_uint32_t basic_sleep;
@@ -355,20 +355,18 @@ _tme_am9513_th_timer(struct tme_am9513 *am9513)
   for (;;) {
 
     /* figure out how much time has elapsed since our last run: */
-    gettimeofday(&elapsed, NULL);
+    tme_get_time(&elapsed);
     then = am9513->tme_am9513_conn_last;
     am9513->tme_am9513_conn_last = elapsed;
-    if (elapsed.tv_usec < then.tv_usec) {
-      elapsed.tv_sec--;
-      elapsed.tv_usec += 1000000;
+    if (TME_TIME_GET_USEC(elapsed) < TME_TIME_GET_USEC(then)) {
+      TME_TIME_ADDV(elapsed, -1, 1000000);
     }
-    elapsed.tv_sec -= then.tv_sec;
-    elapsed.tv_usec -= then.tv_usec;
+    TME_TIME_DEC(elapsed, then);
 
     /* calculate the number of basic ticks that have elapsed: */
     basic_elapsed = am9513->tme_am9513_basic_clock;
-    basic_elapsed *= elapsed.tv_sec;
-    basic_elapsed += (am9513->tme_am9513_basic_clock_msec * elapsed.tv_usec) / 1000;
+    basic_elapsed *= TME_TIME_SEC(elapsed);
+    basic_elapsed += (am9513->tme_am9513_basic_clock_msec * TME_TIME_GET_USEC(elapsed)) / 1000;
 
     /* assume that we will sleep for one second: */
     basic_sleep = am9513->tme_am9513_basic_clock;
@@ -469,16 +467,16 @@ _tme_am9513_th_timer(struct tme_am9513 *am9513)
 #ifdef TME_AM9513_TRACK_INT_RATE
 
       /* update the sample time: */
-      for (counter->tme_am9513_counter_int_sample_time.tv_usec += elapsed.tv_usec;
-	   counter->tme_am9513_counter_int_sample_time.tv_usec >= 1000000;
-	   counter->tme_am9513_counter_int_sample_time.tv_usec -= 1000000) {
-	counter->tme_am9513_counter_int_sample_time.tv_sec++;
+      for (TME_TIME_INC_USEC(counter->tme_am9513_counter_int_sample_time, elapsed);
+	   TME_TIME_GET_USEC(counter->tme_am9513_counter_int_sample_time) >= 1000000;
+	   TME_TIME_INC_USEC(counter->tme_am9513_counter_int_sample_time, -1000000)) {
+	TME_TIME_SEC(counter->tme_am9513_counter_int_sample_time)++;
       }
-      counter->tme_am9513_counter_int_sample_time.tv_sec += elapsed.tv_sec;
+      TME_TIME_SEC(counter->tme_am9513_counter_int_sample_time) += TME_TIME_SEC(elapsed);
 
       /* if the sample time has finished, report on the interrupt
          rate: */
-      if (counter->tme_am9513_counter_int_sample_time.tv_sec
+      if (TME_TIME_SEC(counter->tme_am9513_counter_int_sample_time)
 	  >= TME_AM9513_TRACK_INT_RATE) {
 	if (counter->tme_am9513_counter_int_sample > 0) {
 	  tme_log(TME_AM9513_LOG_HANDLE(am9513),
@@ -487,12 +485,11 @@ _tme_am9513_th_timer(struct tme_am9513 *am9513)
 		   "timer %d interrupt rate: %ld/sec",
 		   counter_i,
 		   (counter->tme_am9513_counter_int_sample
-		    / (unsigned long) counter->tme_am9513_counter_int_sample_time.tv_sec)));
+		    / (unsigned long) TME_TIME_SEC(counter->tme_am9513_counter_int_sample_time))));
 	}
 
 	/* reset the sample: */
-	counter->tme_am9513_counter_int_sample_time.tv_sec = 0;
-	counter->tme_am9513_counter_int_sample_time.tv_usec = 0;
+	TME_TIME_SETV(counter->tme_am9513_counter_int_sample_time, 0, 0);
 	counter->tme_am9513_counter_int_sample = 0;
       }
 #endif /* TME_AM9513_TRACK_INT_RATE */

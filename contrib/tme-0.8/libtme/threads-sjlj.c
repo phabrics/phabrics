@@ -96,8 +96,8 @@ struct tme_sjlj_thread {
   /* if nonzero, the amount of time that this thread is sleeping,
      followed by the time the sleep will timeout.  all threads with
      timeouts are kept on a sorted list: */
-  struct timeval tme_sjlj_thread_sleep;
-  struct timeval tme_sjlj_thread_timeout;
+  tme_time_t tme_sjlj_thread_sleep;
+  tme_time_t tme_sjlj_thread_timeout;
   struct tme_sjlj_thread *timeout_next;
   struct tme_sjlj_thread **timeout_prev;
 
@@ -150,7 +150,7 @@ static struct {
 static tme_uint32_t _tme_sjlj_thread_dispatch_number;
 
 /* a reasonably current time: */
-static struct timeval _tme_sjlj_now;
+static tme_time_t _tme_sjlj_now;
 
 /* if nonzero, the last dispatched thread ran for only a short time: */
 int tme_sjlj_thread_short;
@@ -170,7 +170,7 @@ static int tme_sjlj_idle_set;
 static guint _tme_sjlj_gtk_timeout_id;
 
 /* any timeout time: */
-static struct timeval _tme_sjlj_gtk_timeout;
+static tme_time_t _tme_sjlj_gtk_timeout;
 
 #endif /* HAVE_GTK */
 
@@ -244,12 +244,12 @@ tme_sjlj_threads_gtk_init(void)
 
 /* this returns a reasonably current time: */
 void
-tme_sjlj_gettimeofday(struct timeval *now)
+tme_sjlj_gettimeofday(tme_time_t *now)
 {
 
-  /* if we need to, call gettimeofday(): */
+  /* if we need to, call tme_get_time(): */
   if (__tme_predict_false(!tme_sjlj_thread_short)) {
-    gettimeofday(&_tme_sjlj_now, NULL);
+    tme_get_time(&_tme_sjlj_now);
     tme_sjlj_thread_short = TRUE;
   }
 
@@ -358,7 +358,7 @@ _tme_sjlj_threads_dispatching_runnable(void)
 static void
 _tme_sjlj_threads_dispatching_timeout(void)
 {
-  struct timeval now;
+  tme_time_t now;
   struct tme_sjlj_thread *thread_timeout;
 
   /* get the current time: */
@@ -407,9 +407,9 @@ _tme_sjlj_threads_dispatching_fd(int fd,
 
 /* this makes the timeout time: */
 static void
-_tme_sjlj_timeout_time(struct timeval *timeout)
+_tme_sjlj_timeout_time(tme_time_t *timeout)
 {
-  struct timeval now;
+  tme_time_t now;
   struct tme_sjlj_thread *thread_timeout;
   tme_int32_t usecs;
   unsigned long secs;
@@ -624,7 +624,7 @@ void
 tme_sjlj_threads_gtk_yield(void)
 {
   struct tme_sjlj_thread *thread_timeout;
-  struct timeval timeout;
+  tme_time_t timeout;
   unsigned long secs;
   tme_uint32_t msecs;
 
@@ -727,8 +727,8 @@ tme_sjlj_threads_run(void)
   fd_set fdset_write_out;
   fd_set fdset_except_out;
   GIOCondition fd_conditions;
-  struct timeval timeout_buffer;
-  struct timeval *timeout;
+  tme_time_t timeout_buffer;
+  tme_time_t *timeout;
   int rc;
   
 #ifdef HAVE_GTK
@@ -885,7 +885,7 @@ tme_sjlj_cond_wait_yield(tme_cond_t *cond, tme_mutex_t *mutex)
 
 /* this makes a thread sleep on a condition: */
 void
-tme_sjlj_cond_sleep_yield(tme_cond_t *cond, tme_mutex_t *mutex, const struct timeval *sleep)
+tme_sjlj_cond_sleep_yield(tme_cond_t *cond, tme_mutex_t *mutex, const tme_time_t *sleep)
 {
 
   /* unlock the mutex: */
@@ -1182,7 +1182,7 @@ do {							\
 void
 tme_sjlj_sleep(unsigned long sec, unsigned long usec)
 {
-  struct timeval then, now, timeout;
+  tme_time_t then, now, timeout;
   int rc;
   
   /* the thread ran for an unknown amount of time: */
@@ -1250,9 +1250,9 @@ tme_sjlj_select_yield(int nfds,
 		      fd_set *fdset_read_in,
 		      fd_set *fdset_write_in,
 		      fd_set *fdset_except_in,
-		      struct timeval *timeout_in)
+		      tme_time_t *timeout_in)
 {
-  struct timeval timeout_out;
+  tme_time_t timeout_out;
   int rc;
 
   /* we can't deal if there are more than FD_SETSIZE fds: */
