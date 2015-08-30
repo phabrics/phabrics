@@ -65,5 +65,4 @@ build
 buildd
 *~
 ./
-libtme
 tmememory.h
