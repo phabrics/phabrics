@@ -61,8 +61,7 @@ tme-plugins.txt
 tmesh/tmesh
 tmesh-input.c
 TAGS
-build
-buildd
+build*
 *~
 ./
 tmememory.h
