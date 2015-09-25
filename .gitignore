@@ -65,3 +65,5 @@ build*
 *~
 ./
 tmememory.h
+*.tex
+*.info
