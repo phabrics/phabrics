@@ -1,0 +1,39 @@
+Import Windows mmap library into source tree.
+
+Proxy ARP/NDP support as NAT alternative.
+
+Decoupling of glib from core sjlj threads.
+
+Continue glib integration, particularly for Windows/sjlj.
+
+Packaging on other platforms, e.g., Gentoo, Debian, Cygwin, MinGW.
+
+Interface to pcap library for cross-platform Ethernet support.
+
+TAP Windows driver integration.
+
+Keymaps for other platforms.
+
+FB xlat for other platforms.
+
+Continue Texinfo documentation.
+
+Solaris testing.
+
+Interface to FreeBSD netmap.
+
+Use of FreeBSD libalias for NAT.
+
+OS X port.
+
+Android port.
+
+ARM recode support.
+
+Fix x86_64 recode.
+
+Guile extensibility.
+
+Compilation support with, e.g., Vala.
+
+Synthesis support to map to hardware.
