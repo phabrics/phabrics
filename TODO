@@ -2,11 +2,15 @@ Import Windows mmap library into source tree.
 
 Proxy ARP/NDP support as NAT alternative.
 
+Specifying IPv6 addresses.
+
 Decoupling of glib from core sjlj threads.
 
 Continue glib integration, particularly for Windows/sjlj.
 
 Packaging on other platforms, e.g., Gentoo, Debian, Cygwin, MinGW.
+
+Alignment of package options to configuration options.
 
 Interface to pcap library for cross-platform Ethernet support.
 
@@ -37,3 +41,19 @@ Guile extensibility.
 Compilation support with, e.g., Vala.
 
 Synthesis support to map to hardware.
+
+RFB front-end for VNC.
+
+Motif front-end for thinner platforms.
+
+Virtual ethernet/VPN.
+
+More machine emulations.
+
+Parallel make.
+
+Use of other parallel libraries, e.g., OpenMP, OpenCL, CUDA.
+
+SDL support.
+
+Autotesting.
