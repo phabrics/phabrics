@@ -67,3 +67,6 @@ build*
 tmememory.h
 *.tex
 *.info
+mdate-sh
+stamp-vti
+version.texi
