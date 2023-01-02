@@ -1,5 +1,11 @@
 ### Hi there 👋
 The look, the feel, the phabric of our lives.
+
+## The Machine Emulator
+
+* [TME wiki page](https://osdn.net/users/phabrics/pf/tme/wiki/FrontPage)
+* [TME download page](https://osdn.net/users/phabrics/pf/tme/files)
+* [TME info page](https://phabrics.github.io/tme.html)
 <!--
 **phabrics/phabrics** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
