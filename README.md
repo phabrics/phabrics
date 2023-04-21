@@ -1,5 +1,5 @@
 ### Hi there 👋
-The look, the feel, the phabric of our lives.
+The look, the feel, the phabric of our lives. See the [Phabrics web page](https://phabrics.github.io) for more info.
 
 ## The Machine Emulator
 
