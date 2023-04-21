@@ -3,8 +3,11 @@ The look, the feel, the phabric of our lives.
 
 ## The Machine Emulator
 
-* [TME wiki page](https://osdn.net/users/phabrics/pf/tme/wiki/FrontPage)
-* [TME download page](https://osdn.net/users/phabrics/pf/tme/files)
+The TME project has a new project page. It is called nme, tentatively known as the Next-Generation Machine Emulator:
+
+* [TME project page](https://osdn.net/nme)
+* [TME wiki page](https://osdn.net/nme/wiki/FrontPage)
+* [TME download page](https://osdn.net/projects/nme/releases)
 * [TME info page](https://phabrics.github.io/tme.html)
 <!--
 **phabrics/phabrics** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
