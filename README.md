@@ -6,7 +6,7 @@ The look, the feel, the phabric of our lives. See the [Phabrics web page](https:
 The TME project has a new project page. It is called NME, tentatively known as the Next-Generation Machine Emulator:
 
 * [NME project page](https://osdn.net/projects/nme)
-* [NME web page](https:/nme.osdn.io)
+* [NME web page](https://nme.osdn.io)
 * [TME info page](https://phabrics.github.io/tme.html)
 <!--
 **phabrics/phabrics** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
